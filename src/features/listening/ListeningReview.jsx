@@ -1,5 +1,6 @@
 import { ArrowLeft, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { YouTubePlayer } from '@/components/youtube-player'
 import { cn } from '@/lib/utils'
 import { OPTIONS, getScore } from './score'
@@ -22,7 +23,8 @@ export function ListeningReview({ session, onChange, onResume, onDone }) {
         <Button variant="ghost" size="icon" aria-label="Back to home" onClick={onDone}>
           <ArrowLeft />
         </Button>
-        <p className="truncate text-sm font-medium">{session.title || 'Review'}</p>
+        <p className="min-w-0 flex-1 truncate text-sm font-medium">{session.title || 'Review'}</p>
+        <ThemeToggle />
       </header>
 
       <YouTubePlayer videoId={session.videoId} start={session.start} />

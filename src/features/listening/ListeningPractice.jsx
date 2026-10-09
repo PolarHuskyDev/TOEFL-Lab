@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { YouTubePlayer } from '@/components/youtube-player'
 import { cn } from '@/lib/utils'
 import { OPTIONS } from './score'
@@ -39,7 +40,8 @@ export function ListeningPractice({ session, onChange, onFinish, onExit }) {
         <Button variant="ghost" size="icon" aria-label="Back to home" onClick={onExit}>
           <ArrowLeft />
         </Button>
-        <p className="truncate text-sm font-medium">{session.title || 'Listening practice'}</p>
+        <p className="min-w-0 flex-1 truncate text-sm font-medium">{session.title || 'Listening practice'}</p>
+        <ThemeToggle />
       </header>
 
       <YouTubePlayer videoId={session.videoId} start={session.start} />

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Headphones, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { parseYouTubeUrl, thumbnailUrl } from '@/lib/youtube'
@@ -34,6 +35,7 @@ export function ListeningHome({ sessions, onStart, onOpen, onDelete }) {
       <header className="flex items-center gap-2 pt-2">
         <Headphones className="size-6" />
         <h1 className="text-xl font-semibold">Listening practice</h1>
+        <ThemeToggle className="ml-auto" />
       </header>
 
       <Card>
