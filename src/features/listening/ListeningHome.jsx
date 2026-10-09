@@ -101,6 +101,7 @@ function SessionItem({ session, onOpen, onDelete }) {
   let summary = `${total} question${total === 1 ? '' : 's'}`
   if (finished && graded > 0) summary = `${correct}/${total} correct`
   else if (finished) summary += ' · not graded'
+  if (session.sections.length > 1) summary += ` · ${session.sections.length} sections`
 
   return (
     <li className="flex items-center gap-3 rounded-lg border p-2">

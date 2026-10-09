@@ -3,7 +3,7 @@ import { useSessions } from '@/hooks/use-sessions'
 import { ListeningHome } from '@/features/listening/ListeningHome'
 import { ListeningPractice } from '@/features/listening/ListeningPractice'
 import { ListeningReview } from '@/features/listening/ListeningReview'
-import { trimTrailingEmpty } from '@/features/listening/score'
+import { finalizeSections } from '@/features/listening/score'
 
 function App() {
   const { sessions, createSession, updateSession, deleteSession } = useSessions()
@@ -20,8 +20,8 @@ function App() {
         onExit={goHome}
         onFinish={() => {
           updateSession(session.id, (s) => {
-            const answers = trimTrailingEmpty(s.answers)
-            return { answers, current: Math.min(s.current, answers.length - 1), status: 'finished' }
+            const sections = finalizeSections(s.sections)
+            return { sections, section: 0, current: 0, status: 'finished' }
           })
           setView({ name: 'review', sessionId: session.id })
         }}
@@ -36,7 +36,10 @@ function App() {
         onChange={(patch) => updateSession(session.id, patch)}
         onDone={goHome}
         onResume={() => {
-          updateSession(session.id, (s) => ({ status: 'in-progress', current: s.answers.length - 1 }))
+          updateSession(session.id, (s) => {
+            const section = s.sections.length - 1
+            return { status: 'in-progress', section, current: s.sections[section].answers.length - 1 }
+          })
           setView({ name: 'practice', sessionId: session.id })
         }}
       />

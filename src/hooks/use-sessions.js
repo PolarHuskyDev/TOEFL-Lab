@@ -1,14 +1,28 @@
 import { useCallback, useEffect, useState } from 'react'
+import { emptySection } from '@/features/listening/score'
 
 const STORAGE_KEY = 'toefl-lab:listening:sessions'
 
 function load() {
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    return Array.isArray(value) ? value : []
+    return Array.isArray(value) ? value.map(migrate) : []
   } catch {
     return []
   }
+}
+
+/** Sessions saved before sections existed had answers/key at the top level. */
+function migrate(session) {
+  if (Array.isArray(session.sections)) return session
+  const migrated = {
+    ...session,
+    section: 0,
+    sections: [{ answers: session.answers?.length ? session.answers : [null], key: session.key ?? [] }],
+  }
+  delete migrated.answers
+  delete migrated.key
+  return migrated
 }
 
 function newId() {
@@ -20,9 +34,12 @@ function newId() {
  * {
  *   id, videoId, start, url, title,
  *   status: 'in-progress' | 'finished',
- *   current: number,            // index of the question being answered
- *   answers: ('A'|'B'|'C'|'D'|null)[],
- *   key: ('A'|'B'|'C'|'D'|null)[], // correct answers, filled in on review
+ *   section: number,            // index of the current section
+ *   current: number,            // index of the question inside the current section
+ *   sections: {
+ *     answers: ('A'|'B'|'C'|'D'|null)[],
+ *     key: ('A'|'B'|'C'|'D'|null)[], // correct answers, filled in on review
+ *   }[],
  *   createdAt, updatedAt
  * }
  */
@@ -46,9 +63,9 @@ export function useSessions() {
       url,
       title,
       status: 'in-progress',
+      section: 0,
       current: 0,
-      answers: [null],
-      key: [],
+      sections: [emptySection()],
       createdAt: now,
       updatedAt: now,
     }

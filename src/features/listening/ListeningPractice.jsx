@@ -1,37 +1,63 @@
 import { useEffect, useRef } from 'react'
-import { ArrowLeft, ChevronLeft, ChevronRight, Flag } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, ChevronsRight, Flag, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { YouTubePlayer } from '@/components/youtube-player'
 import { cn } from '@/lib/utils'
-import { OPTIONS } from './score'
+import { OPTIONS, emptySection, patchSection, trimSection } from './score'
 
 export function ListeningPractice({ session, onChange, onFinish, onExit }) {
-  const { answers, current } = session
+  const { sections, section, current } = session
+  const answers = sections[section].answers
   const selected = answers[current] ?? null
+  const isLastSection = section === sections.length - 1
 
   function select(option) {
-    onChange((s) => {
-      const next = [...s.answers]
-      next[s.current] = next[s.current] === option ? null : option
-      return { answers: next }
-    })
+    onChange((s) =>
+      patchSection(s.sections, s.section, (sec) => {
+        const next = [...sec.answers]
+        next[s.current] = next[s.current] === option ? null : option
+        return { ...sec, answers: next }
+      }),
+    )
   }
 
   function goNext() {
+    onChange((s) => ({
+      ...patchSection(s.sections, s.section, (sec) => {
+        const next = [...sec.answers]
+        if (s.current === next.length - 1) next.push(null)
+        return { ...sec, answers: next }
+      }),
+      current: s.current + 1,
+    }))
+  }
+
+  /** Back also crosses into the previous section (to its last question). */
+  function goBack() {
     onChange((s) => {
-      const next = [...s.answers]
-      if (s.current === next.length - 1) next.push(null)
-      return { answers: next, current: s.current + 1 }
+      if (s.current > 0) return { current: s.current - 1 }
+      if (s.section === 0) return {}
+      const prev = s.section - 1
+      return { section: prev, current: s.sections[prev].answers.length - 1 }
     })
   }
 
-  function goBack() {
-    onChange((s) => ({ current: Math.max(0, s.current - 1) }))
+  function goToQuestion(index) {
+    onChange({ current: index })
   }
 
-  function goTo(index) {
-    onChange({ current: index })
+  function goToSection(index) {
+    onChange({ section: index, current: 0 })
+  }
+
+  /** Moves to the next section, creating it if the current one is the last. Question count restarts at 1. */
+  function nextSection() {
+    onChange((s) => {
+      const { sections: next } = patchSection(s.sections, s.section, trimSection)
+      if (s.section === next.length - 1) next.push(emptySection())
+      return { sections: next, section: s.section + 1, current: 0 }
+    })
   }
 
   return (
@@ -46,11 +72,33 @@ export function ListeningPractice({ session, onChange, onFinish, onExit }) {
 
       <YouTubePlayer videoId={session.videoId} start={session.start} />
 
-      <main className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-        <QuestionStrip answers={answers} current={current} onSelect={goTo} />
+      <main className="flex flex-1 flex-col gap-5 overflow-y-auto p-4">
+        <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
+            {sections.map((_, i) => (
+              <Button
+                key={i}
+                size="sm"
+                variant={i === section ? 'secondary' : 'ghost'}
+                aria-pressed={i === section}
+                onClick={() => goToSection(i)}
+              >
+                Section {i + 1}
+              </Button>
+            ))}
+          </div>
+          <Button size="sm" variant="outline" onClick={nextSection}>
+            {isLastSection ? <Plus data-icon="inline-start" /> : <ChevronsRight data-icon="inline-start" />}
+            {isLastSection ? 'New section' : 'Next section'}
+          </Button>
+        </div>
+
+        <QuestionStrip key={section} answers={answers} current={current} onSelect={goToQuestion} />
 
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Question</p>
+          <p className="text-sm text-muted-foreground">
+            {sections.length > 1 ? `Section ${section + 1} · Question` : 'Question'}
+          </p>
           <p className="text-5xl font-semibold tabular-nums">{current + 1}</p>
         </div>
 
@@ -70,7 +118,7 @@ export function ListeningPractice({ session, onChange, onFinish, onExit }) {
       </main>
 
       <footer className="grid grid-cols-3 gap-2 border-t p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
-        <Button variant="outline" size="lg" onClick={goBack} disabled={current === 0}>
+        <Button variant="outline" size="lg" onClick={goBack} disabled={current === 0 && section === 0}>
           <ChevronLeft data-icon="inline-start" />
           Back
         </Button>
