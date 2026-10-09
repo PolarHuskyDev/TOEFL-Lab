@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TOEFL Lab</string>
+    <string name="title_activity_main">TOEFL Lab</string>
+    <string name="package_name">dev.polarhusky.toefllab</string>
+    <string name="custom_url_scheme">dev.polarhusky.toefllab</string>
+</resources>
