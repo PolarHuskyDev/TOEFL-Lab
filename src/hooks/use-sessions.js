@@ -32,7 +32,7 @@ function newId() {
 /**
  * Session shape:
  * {
- *   id, videoId, start, url, title,
+ *   id, videoId, start, url, title, playlistId,
  *   status: 'in-progress' | 'finished',
  *   section: number,            // index of the current section
  *   current: number,            // index of the question inside the current section
@@ -54,7 +54,7 @@ export function useSessions() {
     }
   }, [sessions])
 
-  const createSession = useCallback(({ videoId, start = 0, url, title = '' }) => {
+  const createSession = useCallback(({ videoId, start = 0, url, title = '', playlistId = null }) => {
     const now = Date.now()
     const session = {
       id: newId(),
@@ -62,6 +62,7 @@ export function useSessions() {
       start,
       url,
       title,
+      playlistId,
       status: 'in-progress',
       section: 0,
       current: 0,

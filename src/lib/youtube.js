@@ -52,3 +52,50 @@ export function embedUrl(id, start = 0) {
 export function thumbnailUrl(id) {
   return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
 }
+
+const titleCache = new Map()
+
+/**
+ * Gets the video title without an API key (oEmbed). Falls back to noembed.com if
+ * YouTube's endpoint is blocked (CORS). Returns null if it can't be found.
+ */
+export async function fetchVideoTitle(videoId) {
+  if (titleCache.has(videoId)) return titleCache.get(videoId)
+
+  const watchUrl = encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)
+  const endpoints = [
+    `https://www.youtube.com/oembed?format=json&url=${watchUrl}`,
+    `https://noembed.com/embed?url=${watchUrl}`,
+  ]
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint)
+      if (!res.ok) continue
+      const data = await res.json()
+      if (data?.title) {
+        titleCache.set(videoId, data.title)
+        return data.title
+      }
+    } catch {
+      // network / CORS error: try the next endpoint
+    }
+  }
+  return null
+}
+
+const PLAYLIST_ID_RE = /^[A-Za-z0-9_-]{12,64}$/
+
+/** Extracts the playlist id from a YouTube playlist URL (`list=` param) or a bare id. */
+export function parsePlaylistId(input) {
+  const raw = input.trim()
+  if (!raw) return null
+  if (PLAYLIST_ID_RE.test(raw)) return raw
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+    const id = url.searchParams.get('list')
+    return id && PLAYLIST_ID_RE.test(id) ? id : null
+  } catch {
+    return null
+  }
+}

@@ -4,6 +4,7 @@ import { ListeningHome } from '@/features/listening/ListeningHome'
 import { ListeningPractice } from '@/features/listening/ListeningPractice'
 import { ListeningReview } from '@/features/listening/ListeningReview'
 import { finalizeSections } from '@/features/listening/score'
+import { fetchVideoTitle } from '@/lib/youtube'
 
 function App() {
   const { sessions, createSession, updateSession, deleteSession } = useSessions()
@@ -52,6 +53,11 @@ function App() {
       onStart={(data) => {
         const id = createSession(data)
         setView({ name: 'practice', sessionId: id })
+        if (!data.title) {
+          fetchVideoTitle(data.videoId).then((title) => {
+            if (title) updateSession(id, (s) => (s.title ? {} : { title }))
+          })
+        }
       }}
       onOpen={(s) => setView({ name: s.status === 'finished' ? 'review' : 'practice', sessionId: s.id })}
       onDelete={deleteSession}
