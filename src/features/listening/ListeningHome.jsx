@@ -28,7 +28,7 @@ export function ListeningHome({ sessions, onStart, onOpen, onDelete }) {
   const finished = sessions.filter((s) => s.status === 'finished')
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-4">
+    <div className="mx-auto flex min-h-(--app-height) max-w-md flex-col gap-6 p-4">
       <header className="flex items-center gap-2 pt-2">
         <Headphones className="size-6" />
         <h1 className="text-xl font-semibold">Listening practice</h1>

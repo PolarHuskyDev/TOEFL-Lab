@@ -3,6 +3,7 @@ import { useSessions } from '@/hooks/use-sessions'
 import { ListeningHome } from '@/features/listening/ListeningHome'
 import { ListeningPractice } from '@/features/listening/ListeningPractice'
 import { ListeningReview } from '@/features/listening/ListeningReview'
+import { SessionLayout } from '@/features/listening/SessionLayout'
 import { finalizeSections } from '@/features/listening/score'
 import { fetchVideoTitle } from '@/lib/youtube'
 
@@ -13,37 +14,38 @@ function App() {
   const session = sessions.find((s) => s.id === view.sessionId)
   const goHome = () => setView({ name: 'home' })
 
-  if (view.name === 'practice' && session) {
+  // Practice and review share the same layout so the video player stays mounted when switching.
+  if ((view.name === 'practice' || view.name === 'review') && session) {
+    const isPractice = view.name === 'practice'
     return (
-      <ListeningPractice
-        session={session}
-        onChange={(patch) => updateSession(session.id, patch)}
-        onExit={goHome}
-        onFinish={() => {
-          updateSession(session.id, (s) => {
-            const sections = finalizeSections(s.sections)
-            return { sections, section: 0, current: 0, status: 'finished' }
-          })
-          setView({ name: 'review', sessionId: session.id })
-        }}
-      />
-    )
-  }
-
-  if (view.name === 'review' && session) {
-    return (
-      <ListeningReview
-        session={session}
-        onChange={(patch) => updateSession(session.id, patch)}
-        onDone={goHome}
-        onResume={() => {
-          updateSession(session.id, (s) => {
-            const section = s.sections.length - 1
-            return { status: 'in-progress', section, current: s.sections[section].answers.length - 1 }
-          })
-          setView({ name: 'practice', sessionId: session.id })
-        }}
-      />
+      <SessionLayout session={session} title={isPractice ? 'Listening practice' : 'Review'} onExit={goHome}>
+        {isPractice ? (
+          <ListeningPractice
+            session={session}
+            onChange={(patch) => updateSession(session.id, patch)}
+            onFinish={() => {
+              updateSession(session.id, (s) => {
+                const sections = finalizeSections(s.sections)
+                return { sections, section: 0, current: 0, status: 'finished' }
+              })
+              setView({ name: 'review', sessionId: session.id })
+            }}
+          />
+        ) : (
+          <ListeningReview
+            session={session}
+            onChange={(patch) => updateSession(session.id, patch)}
+            onDone={goHome}
+            onResume={() => {
+              updateSession(session.id, (s) => {
+                const section = s.sections.length - 1
+                return { status: 'in-progress', section, current: s.sections[section].answers.length - 1 }
+              })
+              setView({ name: 'practice', sessionId: session.id })
+            }}
+          />
+        )}
+      </SessionLayout>
     )
   }
 

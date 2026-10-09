@@ -1,25 +1,36 @@
 import { useEffect, useRef } from 'react'
-import { ArrowLeft, ChevronLeft, ChevronRight, ChevronsRight, Flag, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsRight, Flag, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { YouTubePlayer } from '@/components/youtube-player'
 import { cn } from '@/lib/utils'
 import { OPTIONS, emptySection, patchSection, trimSection } from './score'
 
-export function ListeningPractice({ session, onChange, onFinish, onExit }) {
+export function ListeningPractice({ session, onChange, onFinish }) {
   const { sections, section, current } = session
   const answers = sections[section].answers
   const selected = answers[current] ?? null
   const isLastSection = section === sections.length - 1
 
+  /** Picking an option saves it and jumps to the next question. Tapping the selected option again clears it. */
   function select(option) {
-    onChange((s) =>
-      patchSection(s.sections, s.section, (sec) => {
-        const next = [...sec.answers]
-        next[s.current] = next[s.current] === option ? null : option
-        return { ...sec, answers: next }
-      }),
-    )
+    onChange((s) => {
+      const isSelected = s.sections[s.section].answers[s.current] === option
+      if (isSelected) {
+        return patchSection(s.sections, s.section, (sec) => {
+          const next = [...sec.answers]
+          next[s.current] = null
+          return { ...sec, answers: next }
+        })
+      }
+      return {
+        ...patchSection(s.sections, s.section, (sec) => {
+          const next = [...sec.answers]
+          next[s.current] = option
+          if (s.current === next.length - 1) next.push(null)
+          return { ...sec, answers: next }
+        }),
+        current: s.current + 1,
+      }
+    })
   }
 
   function goNext() {
@@ -61,17 +72,7 @@ export function ListeningPractice({ session, onChange, onFinish, onExit }) {
   }
 
   return (
-    <div className="mx-auto flex h-dvh max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 py-2">
-        <Button variant="ghost" size="icon" aria-label="Back to home" onClick={onExit}>
-          <ArrowLeft />
-        </Button>
-        <p className="min-w-0 flex-1 truncate text-sm font-medium">{session.title || 'Listening practice'}</p>
-        <ThemeToggle />
-      </header>
-
-      <YouTubePlayer videoId={session.videoId} start={session.start} />
-
+    <>
       <main className="flex flex-1 flex-col gap-5 overflow-y-auto p-4">
         <div className="flex items-center gap-2">
           <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
@@ -117,7 +118,7 @@ export function ListeningPractice({ session, onChange, onFinish, onExit }) {
         </div>
       </main>
 
-      <footer className="grid grid-cols-3 gap-2 border-t p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+      <footer className="grid grid-cols-3 gap-2 border-t p-3">
         <Button variant="outline" size="lg" onClick={goBack} disabled={current === 0 && section === 0}>
           <ChevronLeft data-icon="inline-start" />
           Back
@@ -131,7 +132,7 @@ export function ListeningPractice({ session, onChange, onFinish, onExit }) {
           Finish
         </Button>
       </footer>
-    </div>
+    </>
   )
 }
 

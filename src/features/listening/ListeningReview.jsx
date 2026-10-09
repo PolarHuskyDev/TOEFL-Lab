@@ -1,7 +1,5 @@
-import { ArrowLeft, Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { YouTubePlayer } from '@/components/youtube-player'
 import { cn } from '@/lib/utils'
 import { OPTIONS, getScore, getSectionScore, patchSection } from './score'
 
@@ -22,17 +20,7 @@ export function ListeningReview({ session, onChange, onResume, onDone }) {
   }
 
   return (
-    <div className="mx-auto flex h-dvh max-w-md flex-col">
-      <header className="flex items-center gap-2 px-2 py-2">
-        <Button variant="ghost" size="icon" aria-label="Back to home" onClick={onDone}>
-          <ArrowLeft />
-        </Button>
-        <p className="min-w-0 flex-1 truncate text-sm font-medium">{session.title || 'Review'}</p>
-        <ThemeToggle />
-      </header>
-
-      <YouTubePlayer videoId={session.videoId} start={session.start} />
-
+    <>
       <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
         <div className="rounded-lg border p-4 text-center">
           <p className="text-sm text-muted-foreground">Score</p>
@@ -56,7 +44,7 @@ export function ListeningReview({ session, onChange, onResume, onDone }) {
         ))}
       </main>
 
-      <footer className="grid grid-cols-2 gap-2 border-t p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+      <footer className="grid grid-cols-2 gap-2 border-t p-3">
         <Button variant="outline" size="lg" onClick={onResume}>
           Keep practicing
         </Button>
@@ -64,7 +52,7 @@ export function ListeningReview({ session, onChange, onResume, onDone }) {
           Done
         </Button>
       </footer>
-    </div>
+    </>
   )
 }
 
